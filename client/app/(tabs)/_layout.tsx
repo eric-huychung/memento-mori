@@ -17,8 +17,11 @@ const Layout = () => {
             name = "profile"
             options={{
                 tabBarLabel: "Profile",
-                tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={24} color="black" />
-            }}            
+                tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={24} color="black" />,
+                href: {
+                    pathname: "/profile",
+                },
+            }}  
         />
         <Tabs.Screen 
             name = "home"

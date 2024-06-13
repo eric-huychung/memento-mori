@@ -1,10 +1,11 @@
 import { View, Text } from 'react-native'
 import React from 'react'
+import Folder from '../(modals)/folder'
 
 const Home = () => {
   return (
     <View>
-      <Text>Home</Text>
+      <Folder />
     </View>
   )
 }

@@ -6,6 +6,7 @@ const app = express();
 // Import user routes and check routes
 import userRoutes from './routes/userRoutes';
 import checkRoutes from './routes/checkRoutes';
+import folderRoutes from './routes/folderRoutes';
 
 // middleware
 app.use(express.json());
@@ -26,5 +27,8 @@ app.use("/users", userRoutes);
 
 // Check routes
 app.use("/checks", checkRoutes);
+
+// Folder routes
+app.use("/folders", folderRoutes);
 
 

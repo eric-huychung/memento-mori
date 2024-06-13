@@ -2,18 +2,39 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Button } from "react-native";
 import {router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+
+// Authenticatio
 import * as Google from "expo-auth-session/providers/google";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Navigation
 import { useNavigation } from '@react-navigation/native';
-//pages
-import Profile from "../(tabs)/profile";
+
+// Redux
+import { useDispatch } from "react-redux";
+import { login } from "../../redux/reducers/user";
 
 WebBrowser.maybeCompleteAuthSession();
 
+// Define an interface for the user information
+interface UserInfo {
+  name: string;
+  email: string;
+}
+
+/**
+ * The SignIn component handles user authentication via Google and manages user information.
+ */
 export default function SignIn() {
 
-    const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  const navigation = useNavigation();
+
+  // State variables to hold user information
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [picture, setPicture] = useState("");
 
   // State variables to hold token and user info
   const [token, setToken] = useState("");
@@ -26,46 +47,64 @@ export default function SignIn() {
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
   });
 
-  // Effect hook to handle changes in response or token
+  /**
+   * Effect hook to handle changes in response or token.
+   * 
+   * @throws {Error} if an error occurs during user authentication or fetching user info
+   */
   useEffect(() => {
     handleEffect();
   }, [response, token]);
 
-  // Function to handle side effects
+  /**
+   * Function to handle side effects related to user authentication.
+   * 
+   * @throws {Error} if an error occurs while getting local user data or fetching user info
+   */
   async function handleEffect() {
     const user = await getLocalUser();
     console.log("user", user);
+    
     if (!user) {
-      if (response?.type === "success") {
-        // If response from Google authentication is successful,
-        // get user info using access token
+      if (response?.type === "success" && response.authentication) {
+        // If response from Google authentication is successful, get user info using access token
         getUserInfo(response.authentication.accessToken);
       }
     } else {
       // If user info is available locally, set user info state
       setUserInfo(user);
+      setName(user.name);
+      setEmail(user.email);
+      setPicture(user.picture);
       // add new user here (CreateNewUser) if checkUserExists == false
       const userExists = await checkUserExists(user.email);
+      console.log(userExists);
       if (!userExists) {
         console.log("user check information", user);
         createNewUser(user);
         // now route to user profile page to edit personal information
-        
-        console.log("Test");
-        router.push("/profile");
+        //console.log("tesing user" + userInfo);
       } // else (user alr exsited)
       // route to folder page and connect friends
-      //return <Navigate to="/profile" replace />
-      console.log("Testing");
-      router.push("/profile");
-      
-      console.log("loaded locally");
+      dispatch(login({
+        name: user.name,
+        email: user.email,
+        picture: user.picture,
+        loggedIn: true,
+      }));
+      navigateToProfile();
     }
-
+    
   }
 
-  // Function to check if a user exists by email
-  const checkUserExists = async (email) => {
+  /**
+   * Function to check if a user exists by email.
+   * 
+   * @param {string} email - The email address to check
+   * @returns {boolean} - True if user exists, false otherwise
+   * @throws {Error} if an error occurs while checking user existence
+   */
+  const checkUserExists = async (email: string) => {
     try {
       const response = await fetch(`http://localhost:8000/checks/email/${email}`);
       const data = await response.json();
@@ -77,8 +116,13 @@ export default function SignIn() {
     }
   };
 
-  // Function to create a new user
-  const createNewUser = async (userInfo) => {
+  /**
+   * Function to create a new user.
+   * 
+   * @param {UserInfo} userInfo - The user information
+   * @throws {Error} if an error occurs while creating a new user
+   */
+  const createNewUser = async (userInfo: UserInfo): Promise<void> => {
     try {
       const response = await fetch("http://localhost:8000/users", {
         method: "POST",
@@ -98,7 +142,12 @@ export default function SignIn() {
     }
   };
 
-  // Function to get user info from local storage
+   /**
+   * Function to get user info from local storage.
+   * 
+   * @returns {Object|null} - The user information or null if not found
+   * @throws {Error} if an error occurs while getting user info from local storage
+   */
   const getLocalUser = async () => {
     const data = await AsyncStorage.getItem("@user");
     if (!data) return null;
@@ -106,8 +155,13 @@ export default function SignIn() {
   };
   
 
-  // Function to get user info from Google API
-  const getUserInfo = async (token) => {
+  /**
+   * Function to get user info from Google API.
+   * 
+   * @param {string} token - The access token from Google authentication
+   * @throws {Error} if an error occurs while fetching user info from Google API
+   */
+  const getUserInfo = async (token: string) => {
     if (!token) return;
     try {
       const response = await fetch(
@@ -121,34 +175,43 @@ export default function SignIn() {
       // Store user info in local storage
       await AsyncStorage.setItem("@user", JSON.stringify(user));
       setUserInfo(user);
+      dispatch(login({
+        name: user.name,
+        email: user.email,
+        picture: user.picture,
+        loggedIn: true,
+      }));
+      navigateToProfile();
     } catch (error) {
       // Add your own error handler here
     }
+  };
+
+  /**
+   * Function to navigate to the profile page.
+   */
+  const navigateToProfile = () => {
+    router.push('/profile');
   };
 
   return (
     <View style={styles.container}>
       {!userInfo ? (
         <Button 
-            class="login-with-google-btn"
-            title="Get Started"
+            title="Log In With Google"
             disabled={!request}
             onPress={() => {
             promptAsync();
           }}
         />
       ) : (
-        <Profile
-          username={userInfo.name}
-          email={userInfo.email}
-          avatarUrl={userInfo.picture}
-          />
+        
+        <Button
+        title="Go to profile"
+        onPress={() => navigateToProfile()}
+        />
       )}
       
-      <Button
-        title="remove local store"
-        onPress={async () => await AsyncStorage.removeItem("@user")}
-      />
     </View>
   );
 }

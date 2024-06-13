@@ -10,6 +10,25 @@ import 'react-native-reanimated';
 
 import { useNavigation } from '@react-navigation/native';
 
+// Navigation Type
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+
+//redux
+import { Provider } from 'react-redux';
+import store from "../redux/store";
+
+
+export type RootStackParamList = {
+  '(tabs)': undefined;
+  '(modals)/login': undefined;
+  '(modals)/onboarding': undefined;
+  // Add other routes here as needed
+};
+
+export type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -18,7 +37,7 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(modals)/login',
+  initialRouteName: '(modals)/onboarding',
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -51,26 +70,28 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<RootStackNavigationProp>();
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="(modals)/login"
-        options={{
-          title: 'Log in or sign up',
-          headerTitleStyle: {
-            fontFamily: 'mon-sb',
-          },
-          presentation: 'modal',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.navigate('(tabs)')}>
-              <Ionicons name="close-outline" size={28} />
-            </TouchableOpacity>
-          ),
-        }} 
-      />
-    </Stack>
+    <Provider store={store}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="(modals)/login"
+          options={{
+            title: 'Log in or sign up',
+            headerTitleStyle: {
+              fontFamily: 'mon-sb',
+            },
+            presentation: 'modal',
+            headerLeft: () => (
+              <TouchableOpacity onPress={() => navigation.navigate('(modals)/onboarding')}>
+                <Ionicons name="close-outline" size={28} />
+              </TouchableOpacity>
+            ),
+          }} 
+        />
+      </Stack>
+    </Provider>
 );
 }
