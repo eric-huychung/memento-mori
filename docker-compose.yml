@@ -1,0 +1,31 @@
+version: "3"
+services:
+  # Service definition for the server
+  server:
+    # Specifies how to build the server service
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    # Port mapping for server service
+    ports:
+      - "8000:8000"  # Maps container port 8000 to host port 8000
+    # Mounts a volume to sync local changes with container
+    volumes:
+      - ./server:/server  # Mounts local ./server directory to /server in container
+    # Overrides CMD in Dockerfile.server to start the server
+    command: npm run start
+
+  # Service definition for the client
+  client:
+    # Specifies how to build the client service
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    # Port mapping for client service
+    ports:
+      - "8081:8081"  # Maps container port 8081 to host port 8081
+    # Mounts a volume to sync local changes with container
+    volumes:
+      - ./client:/client  # Mounts local ./client directory to /client in container
+    # Overrides CMD in Dockerfile.client to start the Expo server
+    command: npx expo start
