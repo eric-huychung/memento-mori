@@ -6,6 +6,7 @@ WORKDIR /server
 
 # Copy the package*.json files
 COPY package*.json ./
+COPY package-lock.json ./
 
 # Install the dependencies
 RUN npm install

@@ -1,0 +1,37 @@
+# Node.js dependencies
+node_modules/
+
+# TypeScript build output
+/dist
+/server/dist
+
+# Local environment variables
+.env*
+
+# TypeScript specific
+*.tsbuildinfo
+
+# Debug files
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# Editor specific
+.idea
+.vscode
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+logs
+*.log
+
+# Temporary files
+*.tmp
+
+# Package-lock files
+package-lock.json
