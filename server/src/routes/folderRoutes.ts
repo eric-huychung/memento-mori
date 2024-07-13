@@ -8,19 +8,26 @@ app.use(cors());
 const router = express.Router();
 
 router.post('/', async (req: Request, res: Response) => {
-    try {
+  try {
       const { userEmail, folderName } = req.body;
-      const newFolder = await pool.query(
-        'INSERT INTO "folders" (user_email, folder_name) VALUES($1, $2) RETURNING *',
-        [userEmail, folderName]
-      );
-      res.json(newFolder.rows[0]);
-    } catch (err) {
-      console.log(err.message);
-      res.status(500).json({ message: 'Server Error' });
-    }
-});
 
+      // Check if folderName is empty
+      if (!folderName) {
+          return res.status(400).json({ message: 'Folder name cannot be empty' });
+      }
+
+      const newFolder = await pool.query(
+          'INSERT INTO "folders" (user_email, folder_name) VALUES($1, $2) RETURNING *',
+          [userEmail, folderName]
+      );
+
+      res.json(newFolder.rows[0]);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ message: 'Server Error' });
+  }
+});
+/*
 router.get('/getAll/:email', async (req: Request, res: Response) => {
     try {
       const { email } = req.params;
@@ -31,6 +38,31 @@ router.get('/getAll/:email', async (req: Request, res: Response) => {
       res.status(500).json({ message: 'Server Error' });
     }
   });
+*/
+
+// Get folders created by the user and folders shared with the user
+router.get('/getAll/:email', async (req, res) => {
+  const { email } = req.params;
+  try {
+      const userFolders = await pool.query(
+          `SELECT * FROM folders WHERE user_email = $1`,
+          [email]
+      );
+
+      const sharedFolders = await pool.query(
+          `SELECT folders.* FROM folders 
+          JOIN folder_permissions ON folders.folder_id = folder_permissions.folder_id 
+          WHERE folder_permissions.user_email = $1`,
+          [email]
+      );
+
+      res.json({ userFolders: userFolders.rows, sharedFolders: sharedFolders.rows });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+  }
+});
+
 
 router.get('/getId/:folder', async (req: Request, res: Response) => {
     try {

@@ -7,10 +7,12 @@ app.use(express.json());
 app.use(cors());
 const router = express.Router();
 
+
 // Define the types for request bodies
 interface CreateUserRequest {
   username: string;
   email: string;
+  picture: string;
 }
 
 interface DeleteUserRequest {
@@ -19,24 +21,33 @@ interface DeleteUserRequest {
 
 /**
  * Create a new user.
- * Inserts a new user record into the database with the provided username and email.
+ * Inserts a new user record into the database with the provided username, email, and picture.
  * 
  * @param {Request} req - The request object containing the user data in the body.
  * @param {Response} res - The response object to send the result back to the client.
  */
 router.post('/', async (req: Request<{}, {}, CreateUserRequest>, res: Response) => {
   try {
-    const { username, email } = req.body;
+    const { username, email, picture } = req.body;
+    //console.log('Received request to create user:', { username, email, picture });
+
+    // Assuming 'picture' is a base64-encoded string
+    // Decode base64 to binary data
+    const pictureBuffer = Buffer.from(picture, 'base64');
+
     const newUser = await pool.query(
-      'INSERT INTO "users" (username, email) VALUES($1, $2) RETURNING *',
-      [username, email]
+      'INSERT INTO "users" (username, email, profile_picture) VALUES($1, $2, $3) RETURNING *',
+      [username, email, pictureBuffer]
     );
+
+    //console.log('User created successfully:', newUser.rows[0]);
     res.json(newUser.rows[0]);
   } catch (err) {
-    console.log(err.message);
+    console.error('Error creating user:', err.message);
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 
 /**
  * Delete a user.

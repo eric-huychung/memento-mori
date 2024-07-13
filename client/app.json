@@ -13,13 +13,15 @@
       "backgroundColor": "#000000"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.echung03.client"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon-screen.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.echung03.client"
     },
     "web": {
       "bundler": "metro",

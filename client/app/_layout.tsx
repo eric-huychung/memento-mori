@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+//import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -18,11 +18,16 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Provider } from 'react-redux';
 import store from "../redux/store";
 
+import Colors from '@/constants/Colors';
+
+
 
 export type RootStackParamList = {
   '(tabs)': undefined;
   '(modals)/login': undefined;
   '(modals)/onboarding': undefined;
+  '(modals)/wall': undefined; // Added wall route type
+
   // Add other routes here as needed
 };
 
@@ -75,6 +80,7 @@ function RootLayoutNav() {
   return (
     <Provider store={store}>
       <Stack>
+        <Stack.Screen name="(modals)/onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen 
           name="(modals)/login"
@@ -83,13 +89,38 @@ function RootLayoutNav() {
             headerTitleStyle: {
               fontFamily: 'mon-sb',
             },
-            presentation: 'modal',
+            presentation: 'transparentModal',
+            headerShown: false, 
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('(modals)/onboarding')}>
                 <Ionicons name="close-outline" size={28} />
               </TouchableOpacity>
             ),
           }} 
+        />
+        <Stack.Screen 
+            name="(modals)/wall" 
+            options={{ 
+              title: 'Memento',
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Ionicons name="arrow-back-outline" size={28} />
+                </TouchableOpacity>
+              ), 
+            }} 
+        />
+        <Stack.Screen 
+            name="(modals)/setting" 
+            options={{ 
+              title: 'Setting',
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Ionicons name="arrow-back-outline" size={28} />
+                </TouchableOpacity>
+              ), 
+            }} 
         />
       </Stack>
     </Provider>

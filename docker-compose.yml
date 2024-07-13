@@ -14,6 +14,14 @@ services:
       - ./server:/server  # Mounts local ./server directory to /server in container
     # Overrides CMD in Dockerfile.server to start the server
     command: npm run start
+    environment:
+      DB_USER: memento_mori_app
+      DB_PASSWORD: TuHuy-2003
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: mementomori
+    depends_on:
+      - db
 
   # Service definition for the client
   client:
@@ -29,3 +37,19 @@ services:
       - ./client:/client  # Mounts local ./client directory to /client in container
     # Overrides CMD in Dockerfile.client to start the Expo server
     command: npx expo start
+
+  # Service definition for PostgreSQL database
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: memento_mori_app
+      POSTGRES_PASSWORD: TuHuy-2003
+      POSTGRES_DB: mementomori
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./server/src/models/init.sql:/docker-entrypoint-initdb.d/init.sql
+volumes:
+  pgdata:

@@ -5,6 +5,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, selectUser } from '../../redux/reducers/user';
 import { RootStackNavigationProp } from "../_layout";
+import { LinearGradient } from 'expo-linear-gradient';
+import Colors from '@/constants/Colors';
 
 interface UserProps {
   name: string;
@@ -36,35 +38,45 @@ const User: React.FC<UserProps> = ({ name, email, picture }) => {
   }, [user, navigation]);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#2C3137', '#17191D']}
+      style={styles.container}
+    >
       {user ? (
         <>
           <Image source={{ uri: user.picture }} style={styles.image} alt="User Avatar" />
-          <Text>{user.email}</Text>
+          
         </>
       ) : (
-        <Text>No User Found Error...</Text>
+        <Text style={styles.text}>No User Found Error...</Text>
       )}
-      <Button title="Log Out" onPress={removeUserDataFromStorage} />
-    </View>
+      <View style={styles.buttonContainer}>
+        <Button title="Log Out" onPress={removeUserDataFromStorage} color={Colors.secondaryColor} />
+      </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   text: {
+    color: Colors.primaryColor,
     fontSize: 20,
     fontWeight: "bold",
+    marginTop: 10,
   },
   image: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  buttonContainer: {
+    marginTop: 30, // Increased gap between the image and the button
   },
 });
 

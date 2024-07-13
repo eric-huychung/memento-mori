@@ -14,6 +14,10 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from "react-redux";
 import { login } from "../../redux/reducers/user";
 
+// Color
+import { LinearGradient } from 'expo-linear-gradient';
+import Colors from '@/constants/Colors';
+
 WebBrowser.maybeCompleteAuthSession();
 
 // Define an interface for the user information
@@ -47,6 +51,11 @@ export default function SignIn() {
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
   });
 
+  // Effect hook to check for token on page load
+  useEffect(() => {
+    retrieveToken();
+  }, []);
+
   /**
    * Effect hook to handle changes in response or token.
    * 
@@ -55,6 +64,31 @@ export default function SignIn() {
   useEffect(() => {
     handleEffect();
   }, [response, token]);
+
+  const retrieveToken = async () => {
+    try {
+      const user = await getLocalUser();
+      if (user && user.email) {
+        const response = await fetch(`http://localhost:8000/auth/retrieve-token?email=${user.email}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.token) {
+            await getUserInfo(data.token);
+          } else {
+            console.log('No token found for this email');
+          }
+        } else {
+          console.error('Failed to fetch token from server:', response.statusText);
+        }
+      } else {
+        console.log('No user found in local storage');
+      }
+    } catch (error) {
+      console.error('Error retrieving token:', error);
+    }
+  };
+  
 
   /**
    * Function to handle side effects related to user authentication.
@@ -124,6 +158,11 @@ export default function SignIn() {
    */
   const createNewUser = async (userInfo: UserInfo): Promise<void> => {
     try {
+      console.log("Sending request to create new user:", userInfo);
+      
+      // Convert image to base64
+      const base64String = await convertImageToBase64(userInfo.picture);
+
       const response = await fetch("http://localhost:8000/users", {
         method: "POST",
         headers: {
@@ -132,15 +171,39 @@ export default function SignIn() {
         body: JSON.stringify({
           username: userInfo.name,
           email: userInfo.email,
+          picture: base64String, // Include base64-encoded image
         }),
       });
+
       const data = await response.json();
       console.log("New user created:", data);
     } catch (error) {
-      console.error(error);
-      // Handle error
+      console.error('Error creating new user:', error);
     }
   };
+
+  /**
+   * Convert image to base64 format.
+   * 
+   * @param {string} imageUrl - The URL of the image
+   * @returns {Promise<string>} The base64-encoded image
+   */
+  const convertImageToBase64 = async (imageUri) => {
+    return new Promise((resolve, reject) => {
+        fetch(imageUri)
+            .then((response) => response.blob())
+            .then((blob) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    resolve(reader.result.split(',')[1]);
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(blob);
+            })
+            .catch((error) => reject(error));
+    });
+  };
+
 
    /**
    * Function to get user info from local storage.
@@ -174,6 +237,10 @@ export default function SignIn() {
       const user = await response.json();
       // Store user info in local storage
       await AsyncStorage.setItem("@user", JSON.stringify(user));
+
+      // Store token in Redis
+      await storeTokenInRedis(token, user.email);
+
       setUserInfo(user);
       dispatch(login({
         name: user.name,
@@ -187,6 +254,20 @@ export default function SignIn() {
     }
   };
 
+  const storeTokenInRedis = async (token: string, email: string) => {
+    try {
+      await fetch("http://localhost:8000/auth/store-token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, email }),
+      });
+    } catch (error) {
+      console.error('Error storing token in Redis:', error);
+    }
+  };
+
   /**
    * Function to navigate to the profile page.
    */
@@ -195,33 +276,36 @@ export default function SignIn() {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#2C3137', '#17191D']}
+      style={styles.container}
+    >
       {!userInfo ? (
         <Button 
-            title="Log In With Google"
-            disabled={!request}
-            onPress={() => {
+          title="Log In With Google"
+          disabled={!request}
+          onPress={() => {
             promptAsync();
           }}
+          color={Colors.secondaryColor}
         />
       ) : (
-        
         <Button
-        title="Go to profile"
-        onPress={() => navigateToProfile()}
+          title="Go to profile"
+          onPress={() => navigateToProfile()}
+          color={Colors.secondaryColor}
         />
       )}
-      
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   text: {
     fontSize: 20,
