@@ -7,7 +7,15 @@ app.use(express.json());
 app.use(cors());
 const router = express.Router();
 
-// Add Permission
+/**
+ * Add a permission for a user to access a folder.
+ * 
+ * @param {Request} req - The request object containing `folderId` and `userEmail` in the body.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If `folderId` or `userEmail` is missing in the request body.
+ * @throws {500} If there is an error processing the request.
+ */
 router.post('/add', async (req: Request, res: Response) => {
     try {
         const { folderId, userEmail } = req.body;
@@ -32,10 +40,22 @@ router.post('/add', async (req: Request, res: Response) => {
     }
 });
 
-// Get Permissions
+/**
+ * Retrieve all permissions for a specific folder.
+ * 
+ * @param {Request} req - The request object containing `folderId` as a URL parameter.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {404} If no permissions are found for the given `folderId`.
+ * @throws {500} If there is an error querying the database.
+ */
 router.get('/get/:folderId', async (req: Request, res: Response) => {
     try {
         const { folderId } = req.params;
+
+        if (!folderId) {
+            return res.status(400).json({ message: 'Missing folderId' });
+        }
 
         const result = await pool.query(
             'SELECT user_email FROM folder_permissions WHERE folder_id = $1',
@@ -53,13 +73,25 @@ router.get('/get/:folderId', async (req: Request, res: Response) => {
     }
 });
 
-// Check if Permission Exists
+/**
+ * Check if a permission exists for a user on a specific folder.
+ * 
+ * @param {Request} req - The request object containing `folderId` and `userEmail` in the body.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If `folderId` or `userEmail` is missing in the request body.
+ * @throws {500} If there is an error querying the database.
+ */
 router.post('/check', async (req: Request, res: Response) => {
     try {
         const { folderId, userEmail } = req.body;
 
-        if (!folderId || !userEmail) {
-            return res.status(400).json({ message: 'Missing folderId or userEmail' });
+        if (!folderId) {
+            return res.status(400).json({ message: 'Missing folderId' });
+        }
+
+        if (!userEmail) {
+            return res.status(400).json({ message: 'Missing userEmail' });
         }
 
         const result = await pool.query(
@@ -78,7 +110,16 @@ router.post('/check', async (req: Request, res: Response) => {
     }
 });
 
-// Delete Permission
+/**
+ * Delete a permission for a user on a specific folder.
+ * 
+ * @param {Request} req - The request object containing `folderId` and `userEmail` in the body.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If `folderId` or `userEmail` is missing in the request body.
+ * @throws {404} If the permission to delete is not found.
+ * @throws {500} If there is an error querying the database.
+ */
 router.delete('/delete', async (req: Request, res: Response) => {
     try {
         const { folderId, userEmail } = req.body;
@@ -107,7 +148,16 @@ router.delete('/delete', async (req: Request, res: Response) => {
     }
 });
 
-// Check if User is Authorized
+/**
+ * Check if a user is authorized for a specific folder.
+ * 
+ * @param {Request} req - The request object containing `folderId` and `userEmail` as query parameters.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If `folderId` or `userEmail` is missing in the query parameters.
+ * @throws {403} If the user is not authorized for the folder.
+ * @throws {500} If there is an error querying the database.
+ */
 router.get('/check', async (req: Request, res: Response) => {
     try {
         const { folderId, userEmail } = req.query;

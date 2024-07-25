@@ -2,10 +2,11 @@ import express, { Request, Response } from "express";
 import cors from 'cors';
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
+import pool from './models/db';
 
 const app = express();
 
-// Import user routes and check routes
+// Import routes
 import userRoutes from './routes/userRoutes';
 import checkRoutes from './routes/checkRoutes';
 import folderRoutes from './routes/folderRoutes';
@@ -19,6 +20,16 @@ app.use(express.json());
 app.use(cors());
 
 const port = process.env.PORT || 8000;
+
+// Test PostgreSQL connection
+pool.query('SELECT NOW()')
+    .then((res) => {
+        console.log('PostgreSQL connected at', res.rows[0].now);
+    })
+    .catch((err) => {
+        console.error('PostgreSQL connection error:', err);
+    });
+
 // Configuration for Redis client
 const redisConfig = {
     port: parseInt(process.env.REDIS_PORT), // Replace with your Redis port number

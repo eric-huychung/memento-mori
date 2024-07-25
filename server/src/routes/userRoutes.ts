@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import pool from '../models/db'; // Adjust the path based on your project structure
+import pool from '../models/db';
 
 const app = express();
 app.use(express.json());
@@ -29,9 +29,20 @@ interface DeleteUserRequest {
 router.post('/', async (req: Request<{}, {}, CreateUserRequest>, res: Response) => {
   try {
     const { username, email, picture } = req.body;
-    //console.log('Received request to create user:', { username, email, picture });
 
-    // Assuming 'picture' is a base64-encoded string
+    if (!username) {
+      return res.status(400).json({ message: 'Missing required field: username' });
+    }
+
+    if (!email) {
+      return res.status(400).json({ message: 'Missing required field: email' });
+    }
+
+    if (!picture) {
+      return res.status(400).json({ message: 'Missing required field: picture' });
+    }
+
+    // 'picture' is a base64-encoded string
     // Decode base64 to binary data
     const pictureBuffer = Buffer.from(picture, 'base64');
 
@@ -59,6 +70,11 @@ router.post('/', async (req: Request<{}, {}, CreateUserRequest>, res: Response) 
 router.delete('/delete/:id', async (req: Request<DeleteUserRequest>, res: Response) => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: 'Missing user ID' });
+    }
+    
     const deleteUser = await pool.query('DELETE FROM "users" WHERE user_id = $1', [id]);
     if (deleteUser.rowCount === 0) {
       return res.status(404).json({ message: 'No user found with this id' });

@@ -13,20 +13,21 @@ router.post('/store-token', async (req: Request, res: Response) => {
     try {
         const { token, email } = req.body;
 
-        if (!token || !email) {
+        if (!token && !email) {
             return res.status(400).json({ message: 'Token and email are required' });
+        }
+
+        if (!token) {
+            return res.status(400).json({ message: 'Token is required' });
+        }
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
         }
 
         const tokenExpiration = 60 * 60 * 24 * 7; // 7 days in seconds
 
-        console.log(`Storing token for email: ${email}`);
-        console.log(`Token to store: ${token}`);
-
         await client.setex(email, tokenExpiration, token);
-
-        // Retrieve the token to confirm storage
-        const storedToken = await client.get(email);
-        console.log(`Token stored in Redis for email: ${email} - ${storedToken}`);
 
         res.status(200).json({ message: 'Token stored successfully' });
     } catch (err) {
@@ -51,8 +52,6 @@ router.get('/retrieve-token', async (req: Request, res: Response) => {
         
         // Retrieve token from Redis
         const token = await client.get(email);
-        
-        console.log(`Retrieved token for email: ${email}`);
         
         if (token) {
             res.status(200).json({ token });

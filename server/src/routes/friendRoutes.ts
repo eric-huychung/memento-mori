@@ -7,7 +7,15 @@ app.use(express.json());
 app.use(cors());
 const router = express.Router();
 
-// Add friend
+/**
+ * Add a new friend for a user and create a reciprocal friendship.
+ * 
+ * @param {Request} req - The request object containing the user and friend emails in the body.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If the user or friend email is missing.
+ * @throws {500} If there is an error processing the request or committing the transaction.
+ */
 router.post('/add', async (req: Request, res: Response) => {
     try {
       const { user, friend } = req.body;
@@ -54,7 +62,16 @@ router.post('/add', async (req: Request, res: Response) => {
 });
 
   
-// Delete friend
+/**
+ * Delete a friend and the reciprocal friendship.
+ * 
+ * @param {Request} req - The request object containing the user and friend emails in the body.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If the user or friend email is missing.
+ * @throws {404} If no friendship is found to delete.
+ * @throws {500} If there is an error processing the request or committing the transaction.
+ */
 router.delete('/delete', async (req: Request, res: Response) => {
     try {
         const { user, friend } = req.body;
@@ -109,12 +126,27 @@ router.delete('/delete', async (req: Request, res: Response) => {
     }
 });
 
-
-
-// Check if friendship exists
+/**
+ * Check if a friendship exists between two users.
+ * 
+ * @param {Request} req - The request object containing the user and friend emails as URL parameters.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If the user or friend parameter is missing or invalid.
+ * @throws {500} If there is an error querying the database.
+ */
 router.get('/friendship/:user/:friend', async (req: Request, res: Response) => {
     try {
         const { user, friend } = req.params;
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid user' });
+        }
+
+        if (!friend) {
+            return res.status(400).json({ message: 'Invalid friend' });
+        }
+
         const result = await pool.query(
             'SELECT * FROM friends WHERE user_email = $1 AND friend_email = $2',
             [user, friend]
@@ -130,10 +162,24 @@ router.get('/friendship/:user/:friend', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-// Get all friends of a user with pictures
+
+/**
+ * Get all friends of a user along with their profile pictures.
+ * 
+ * @param {Request} req - The request object containing the user email as a URL parameter.
+ * @param {Response} res - The response object to send the result back to the client.
+ * 
+ * @throws {400} If the user parameter is missing or invalid.
+ * @throws {500} If there is an error querying the database.
+ */
 router.get('/friends/:user', async (req: Request, res: Response) => {
     try {
         const { user } = req.params;
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid user parameter' });
+        }
+
         const result = await pool.query(
             `SELECT f.friend_email, u.profile_picture AS picture
              FROM friends f
@@ -158,8 +204,5 @@ router.get('/friends/:user', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-
-
-
 
 export default router;
