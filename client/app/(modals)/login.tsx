@@ -24,6 +24,7 @@ WebBrowser.maybeCompleteAuthSession();
 interface UserInfo {
   name: string;
   email: string;
+  picture: string;
 }
 
 /**
@@ -124,7 +125,6 @@ export default function SignIn() {
         name: user.name,
         email: user.email,
         picture: user.picture,
-        loggedIn: true,
       }));
       navigateToProfile();
     }
@@ -188,14 +188,18 @@ export default function SignIn() {
    * @param {string} imageUrl - The URL of the image
    * @returns {Promise<string>} The base64-encoded image
    */
-  const convertImageToBase64 = async (imageUri) => {
+  const convertImageToBase64 = async (imageUri: string) => {
     return new Promise((resolve, reject) => {
         fetch(imageUri)
             .then((response) => response.blob())
             .then((blob) => {
                 const reader = new FileReader();
                 reader.onload = () => {
+                  if (typeof reader.result === 'string') {
                     resolve(reader.result.split(',')[1]);
+                  } else {
+                    reject(new Error('Failed to read image as data URL'));
+                  }
                 };
                 reader.onerror = (error) => reject(error);
                 reader.readAsDataURL(blob);
@@ -246,7 +250,6 @@ export default function SignIn() {
         name: user.name,
         email: user.email,
         picture: user.picture,
-        loggedIn: true,
       }));
       navigateToProfile();
     } catch (error) {

@@ -8,22 +8,27 @@ import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 
+interface Bubble {
+    image: string;
+    description: string;
+}
+
 const Wall = () => {
-    const folderId = useSelector(selectFolderId);
+    const folderId = useSelector(selectFolderId) || '';
     const folderName = useSelector(selectFolderName);
 
-    const [bubbles, setBubbles] = useState([]);
-    const [description, setDescription] = useState('');
-    const [showAlert, setShowAlert] = useState(false);  // State to manage alert visibility
-    const [alertMessage, setAlertMessage] = useState('');  // State to manage alert message
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);  // State to manage delete confirmation alert
-    const [descriptionToDelete, setDescriptionToDelete] = useState('');  // State to store description to delete
+    const [bubbles, setBubbles] = useState<Bubble[]>([]);
+    const [description, setDescription] = useState<string>('');
+    const [showAlert, setShowAlert] = useState<boolean>(false); // State to manage alert visibility
+    const [alertMessage, setAlertMessage] = useState<string>(''); // State to manage alert message
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);  // State to manage delete confirmation alert
+    const [descriptionToDelete, setDescriptionToDelete] = useState<string>('');  // State to store description to delete
 
     useEffect(() => {
         getBubbles(folderId);
     }, [folderId]);
 
-    const getBubbles = async (folderId) => {
+    const getBubbles = async (folderId: string) => {
         try {
             const response = await fetch(`http://localhost:8000/bubbles/getBubbles/${folderId}`);
             const data = await response.json();
@@ -50,17 +55,25 @@ const Wall = () => {
                     } else if (response.assets && response.assets.length > 0) {
                         const image = response.assets[0];
                         try {
-                            const base64String = await convertImageToBase64(image.uri);
-                            const requestData = {
-                                picture: base64String,
-                                id: folderId,
-                                description: description,
-                            };
-
-                            const res = await axios.post('http://localhost:8000/bubbles/upload', requestData);
-                            console.log('Image uploaded successfully', res.data);
-                            getBubbles(folderId); // Refresh the list of bubbles
-                            setDescription(''); // Clear input field after upload
+                            if (image.uri) {  // Check if uri is defined
+                                try {
+                                    const base64String = await convertImageToBase64(image.uri);
+                                    const requestData = {
+                                        picture: base64String,
+                                        id: folderId,
+                                        description: description,
+                                    };
+        
+                                    const res = await axios.post('http://localhost:8000/bubbles/upload', requestData);
+                                    console.log('Image uploaded successfully', res.data);
+                                    getBubbles(folderId); // Refresh the list of bubbles
+                                    setDescription(''); // Clear input field after upload
+                                } catch (error) {
+                                    console.error('Error uploading image:', error);
+                                }
+                            } else {
+                                console.log('Image URI is undefined');
+                            }
                         } catch (error) {
                             console.error('Error uploading image:', error);
                         }
@@ -75,7 +88,7 @@ const Wall = () => {
         });
     };
 
-    const checkDescriptionUnique = async (description) => {
+    const checkDescriptionUnique = async (description: string) => {
         try {
             const response = await axios.post('http://localhost:8000/bubbles/check-description', { description });
             return response.data.unique;
@@ -85,14 +98,18 @@ const Wall = () => {
         }
     };
 
-    const convertImageToBase64 = async (imageUri) => {
+    const convertImageToBase64 = async (imageUri: string) => {
         return new Promise((resolve, reject) => {
             fetch(imageUri)
                 .then((response) => response.blob())
                 .then((blob) => {
                     const reader = new FileReader();
                     reader.onload = () => {
-                        resolve(reader.result.split(',')[1]);
+                        if (reader.result) {
+                            resolve((reader.result as string).split(',')[1]);
+                        } else {
+                            reject(new Error('Failed to read file'));
+                        }
                     };
                     reader.onerror = (error) => reject(error);
                     reader.readAsDataURL(blob);
@@ -101,7 +118,7 @@ const Wall = () => {
         });
     };
 
-    const handleDeleteBubble = async (description) => {
+    const handleDeleteBubble = async (description: string) => {
         try {
             const res = await axios.delete('http://localhost:8000/bubbles/delete-by-description', { data: { description } });
             console.log(res.data.message);
@@ -111,7 +128,7 @@ const Wall = () => {
         }
     };
 
-    const confirmDeleteBubble = (description) => {
+    const confirmDeleteBubble = (description: string) => {
         setDescriptionToDelete(description);
         setShowDeleteConfirm(true);  // Show the confirmation alert
     };
@@ -253,7 +270,7 @@ const styles = StyleSheet.create({
         height: 200,
         marginBottom: 10,
         borderRadius: 8,
-        boxShadow: 'rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px',
+        //boxShadow: 'rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px',
         //borderWidth: 1,
         //borderColor: 'red',
     },

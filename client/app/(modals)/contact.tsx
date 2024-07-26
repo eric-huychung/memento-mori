@@ -6,11 +6,23 @@ import { selectUser } from '../../redux/reducers/user';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 
+// Define the User type
+interface User {
+    name: string;
+    email: string;
+}
+
+// Define the Friend type
+interface Friend {
+    friend_email: string;
+    picture?: string;
+}
+
 const Contact = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showAlert, setShowAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
-    const [friends, setFriends] = useState([]);
+    const [friends, setFriends] = useState<Friend[]>([]); 
     const [friendToDelete, setFriendToDelete] = useState('');
     const [showDeleteAlert, setShowDeleteAlert] = useState(false);
     const user = useSelector(selectUser);
@@ -37,11 +49,12 @@ const Contact = () => {
         }
     };
 
-    const handleSearch = (query) => {
+    const handleSearch = (query: string) => {
         setSearchQuery(query);
     };
 
     const handleAddFriend = async () => {
+        if (!user) return;
         try {
             const emailResponse = await fetch(`http://localhost:8000/checks/email/${searchQuery}`);
             const emailData = await emailResponse.json();
@@ -80,7 +93,8 @@ const Contact = () => {
         setShowAlert(true);
     };
 
-    const handleDeleteFriend = async (friendEmail) => {
+    const handleDeleteFriend = async (friendEmail: string) => {
+        if (!user) return;
         try {
             const deleteResponse = await fetch('http://localhost:8000/friends/delete', {
                 method: 'DELETE',
@@ -106,7 +120,7 @@ const Contact = () => {
         setShowAlert(true);
     };
 
-    const confirmDelete = (friendEmail) => {
+    const confirmDelete = (friendEmail: string) => {
         setFriendToDelete(friendEmail);
         setAlertMessage(`Are you sure you want to delete ${friendEmail}?`);
         setShowDeleteAlert(true);

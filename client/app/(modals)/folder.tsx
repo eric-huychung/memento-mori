@@ -10,26 +10,32 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 import logo from '../../assets/images/folder.png';
 
+interface Folder {
+    folder_id: number;
+    folder_name: string;
+    user_email?: string; 
+}
+
 const Folder = () => {
     const navigation = useNavigation<RootStackNavigationProp>();
     const dispatch = useDispatch();
 
     const user = useSelector(selectUser);
-    const [userFolders, setUserFolders] = useState([]);
-    const [sharedFolders, setSharedFolders] = useState([]);
+    const [userFolders, setUserFolders] = useState<Folder[]>([]);
+    const [sharedFolders, setSharedFolders] = useState<Folder[]>([]);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [folderToDelete, setFolderToDelete] = useState('');
-    const [newFolderName, setNewFolderName] = useState('');
+    const [folderToDelete, setFolderToDelete] = useState<string>('');
+    const [newFolderName, setNewFolderName] = useState<string>('');
     const [showNameEmptyAlert, setShowNameEmptyAlert] = useState(false);
-    const [filter, setFilter] = useState('yourFolders'); // State for filter
+    const [filter, setFilter] = useState<string>('yourFolders'); // State for filter
 
     useEffect(() => {
-        if (user) {
+        if (user && user.email) {
             getFolders(user.email);
         }
     }, [user]);
 
-    const getFolders = async (email) => {
+    const getFolders = async (email: string) => {
         try {
             const response = await fetch(`http://localhost:8000/folders/getAll/${email}`);
             const data = await response.json();
@@ -41,6 +47,9 @@ const Folder = () => {
     };
 
     const handleAddFolder = async () => {
+        if (!user) {
+            return;
+        }
         try {
             if (!newFolderName.trim()) {
                 setShowNameEmptyAlert(true);
@@ -69,7 +78,7 @@ const Folder = () => {
         }
     };
 
-    const getFolderId = async (folderName) => {
+    const getFolderId = async (folderName: string) => {
         try {
             const response = await fetch(`http://localhost:8000/folders/getId/${folderName}`);
             const data = await response.json();
@@ -96,19 +105,19 @@ const Folder = () => {
         }
     };
 
-    const confirmDeleteFolder = (folderName) => {
+    const confirmDeleteFolder = (folderName: string) => {
         setFolderToDelete(folderName);
         setShowDeleteConfirm(true);
     };
 
-    const handleSelectFolder = async (folderName) => {
+    const handleSelectFolder = async (folderName: string) => {
         const folderId = await getFolderId(folderName);
         dispatch(setFolderId(folderId));
         dispatch(setFolderName(folderName));
         navigation.navigate('(modals)/wall');
     };
 
-    const handleSettings = async (folderName) => {
+    const handleSettings = async (folderName: string) => {
         const folderId = await getFolderId(folderName);
         dispatch(setFolderId(folderId));
         dispatch(setFolderName(folderName));

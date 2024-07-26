@@ -1,20 +1,26 @@
-// redux/reducers/folder.js
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+interface FolderState {
+    folderId: string | null;
+    folderName: string | null;
+}
+
+const initialState: FolderState = {
+    folderId: null,
+    folderName: null,
+};
 
 export const folderSlice = createSlice({
     name: "folder",
-    initialState: {
-        folderId: null,
-        folderName: null,
-    },
+    initialState,
     reducers: {
-        setFolderId: (state, action) => {
+        setFolderId: (state, action: PayloadAction<string | null>) => {
             state.folderId = action.payload;
         },
         clearFolderId: (state) => {
             state.folderId = null;
         },
-        setFolderName: (state, action) => {
+        setFolderName: (state, action: PayloadAction<string | null>) => {
             state.folderName = action.payload;
         },
         clearFolderName: (state) => {
@@ -27,8 +33,8 @@ export const { setFolderId, clearFolderId } = folderSlice.actions;
 
 export const { setFolderName, clearFolderName } = folderSlice.actions;
 
-export const selectFolderId = (state) => state.folder.folderId;
+export const selectFolderId = (state: { folder: FolderState }) => state.folder.folderId;
 
-export const selectFolderName = (state) => state.folder.folderName;
+export const selectFolderName = (state: { folder: FolderState }) => state.folder.folderName;
 
 export default folderSlice.reducer;

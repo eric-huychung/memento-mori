@@ -3,22 +3,25 @@ import { View, Text, TextInput, Button } from "react-native";
 import { useSelector } from "react-redux";
 import { selectUser } from '../redux/reducers/user';
 
-const FolderForm = () => {
-    const user = useSelector(selectUser);
-    const [folderName, setFolderName] = useState('');
+interface User {
+    name: string;
+    email: string;
+}
 
-    const handleFolderNameChange = (text) => {
+const FolderForm = () => {
+    const user = useSelector(selectUser) as User;
+    const [folderName, setFolderName] = useState<string>('');
+
+    const handleFolderNameChange = (text: string) => {
         setFolderName(text);
     };
 
     const handleSubmit = () => {
-        // Logic to handle form submission goes here
         console.log('Folder Name:', folderName);
-        // You can add additional logic such as dispatching an action to Redux to create the folder
         addForm(folderName);
     };
 
-    const addForm = async (folderName): Promise<void> => {
+    const addForm = async (folderName: string): Promise<void> => {
         try {
             const response = await fetch('http://localhost:8000/folders', {
                 method: 'POST',

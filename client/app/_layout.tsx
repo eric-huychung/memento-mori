@@ -27,6 +27,7 @@ export type RootStackParamList = {
   '(modals)/login': undefined;
   '(modals)/onboarding': undefined;
   '(modals)/wall': undefined; // Added wall route type
+  '(modals)/setting': { folderId: number };
 
   // Add other routes here as needed
 };

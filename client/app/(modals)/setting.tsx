@@ -7,6 +7,10 @@ import { selectFolderId, selectFolderName } from '../../redux/reducers/folder';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 
+interface Permission {
+    user_email: string;
+}
+
 const Settings = () => {
     const navigation = useNavigation();
     const route = useRoute();
@@ -14,10 +18,10 @@ const Settings = () => {
 
     const folderId = useSelector(selectFolderId);
     const folderName = useSelector(selectFolderName);
-    const [permissions, setPermissions] = useState([]);
-    const [userEmail, setUserEmail] = useState('');
+    const [permissions, setPermissions] = useState<Permission[]>([]);
+    const [userEmail, setUserEmail] = useState<string>('');
     const [showAlert, setShowAlert] = useState(false);
-    const [alertMessage, setAlertMessage] = useState('');
+    const [alertMessage, setAlertMessage] = useState<string>('');
 
     useEffect(() => {
         if (folderId) {
@@ -25,7 +29,7 @@ const Settings = () => {
         }
     }, [folderId]);
 
-    const getPermissions = async (folderId) => {
+    const getPermissions = async (folderId: string) => {
         try {
             const response = await fetch(`http://localhost:8000/permissions/get/${folderId}`);
             const data = await response.json();
@@ -85,7 +89,7 @@ const Settings = () => {
         }
     };
 
-    const handleDeletePermission = async (userEmail) => {
+    const handleDeletePermission = async (userEmail: string) => {
         try {
             const response = await fetch('http://localhost:8000/permissions/delete', {
                 method: 'DELETE',
