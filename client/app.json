@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon-screen.png",
-    "scheme": "myapp",
+    "scheme": "memento mori",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash-screen.png",
@@ -14,14 +14,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.echung03.client"
+      "bundleIdentifier": "host.exp.exponent"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon-screen.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.echung03.client"
+      "package": "host.exp.exponent"
     },
     "web": {
       "bundler": "metro",

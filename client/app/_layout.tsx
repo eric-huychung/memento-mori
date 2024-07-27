@@ -20,6 +20,8 @@ import store from "../redux/store";
 
 import Colors from '@/constants/Colors';
 
+import onboarding from './(modals)/onboarding';
+
 
 
 export type RootStackParamList = {
